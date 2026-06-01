@@ -14,6 +14,8 @@ class TestStringUtils:
         assert count_vowels("bcdfg") == 0
     
     def test_is_palindrome(self):
-        assert is_palindrome("A man, a plan, a canal: Panama") == True
-        assert is_palindrome("race a car") == False
-        assert is_palindrome("") == True
+        assert is_palindrome("racecar")          
+        assert not is_palindrome("hello")       
+        assert is_palindrome("")               
+        assert is_palindrome("A man, a plan, a canal: Panama")
+        assert not is_palindrome("race a car")
