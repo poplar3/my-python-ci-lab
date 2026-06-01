@@ -6,16 +6,16 @@ class TestStringUtils:
         assert reverse_string("hello") == "olleh"
         assert reverse_string("Python") == "nohtyP"
         assert reverse_string("") == ""
-    
+
     def test_count_vowels(self):
         assert count_vowels("hello") == 2
         assert count_vowels("Python") == 1
         assert count_vowels("AEIOU") == 5
         assert count_vowels("bcdfg") == 0
-    
+
     def test_is_palindrome(self):
-        assert is_palindrome("racecar")          
-        assert not is_palindrome("hello")       
-        assert is_palindrome("")               
+        assert is_palindrome("racecar")
+        assert not is_palindrome("hello")
+        assert is_palindrome("")
         assert is_palindrome("A man, a plan, a canal: Panama")
         assert not is_palindrome("race a car")
