@@ -1,0 +1,103 @@
+name: CI/CD Pipeline # имя workflow для github actions
+
+# Условия запуска
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch: # Запуск соответствующей кнопкой
+
+jobs: # Задачи для выполнения
+  lint: # Задача - линковка
+    name: Lint - Static Code Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Chekout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install ruff
+
+    - name: Run Ruff linter
+      run: ruff check . --output-format=github
+
+    - name: Check formating with Ruff
+      run: ruff format --check # проверяет форматирование без изменения файла
+
+  test: # Задача - тестирование
+    name: Test - Unit Tests with Coverage
+    needs: lint # зависимость
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-dev.txt
+        pip install pytest pytest-cov
+    - name: Run tests with coverage # показатель того, какая часть исходного кода охвачена тестами
+      run: |
+        pytest --cov=my_project --cov-report=term --cov-report=html --cov-report=xml # измерять покрытие только для папки my_project, показать отчёт в терминале, html, xml
+
+    - name: Upload coverage report # сохраняем отчёт
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report # Имя артефакта
+        path: htmlcov/ # Что загрузить
+    - name: Upload coverage to Github
+      uses: codecov/codecov-action@v3 # сервис, который хранит историю покрытия и показывает бейдж в readme
+      with:
+        file: ./coverage.xml # откуда взять данные
+        flags: unittests # метка для этого типа тестов
+        fail_ci_if_error: false # не проваливать CI, если Codecov недоступен
+
+  build: # Задача - сборка
+    name: Build - Create Executable
+    needs: test 
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller
+
+    - name: Build executable
+      run: pyinstaller --onefile --name my-app main.py
+
+    - name: Upload executable
+      uses: actions/upload-artifact@v4
+      with:
+        name: my-app-executable
+        path: dist/my-app*
+
+    - name: Quick test that it works
+      run: |
+        chmod +x dist/my-app
+        ./dist/my-app
+
